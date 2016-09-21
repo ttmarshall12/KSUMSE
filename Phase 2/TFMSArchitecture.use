@@ -1,0 +1,173 @@
+-------------------------------------------------------------------------------
+-- Track & Field Meet Server Architecture
+-- 
+-- This file contains a formal specification of the invariants maintained by
+-- the getEventsToFire method from the RoleLevelGoalModel
+--
+-- File:    GMoDSAgentArchitecture.use
+-- Author:  Kyle Hill
+-- Date:    June 20, 2011
+-------------------------------------------------------------------------------
+
+model TFMSArchitecture
+
+-------------------------------------------------------------------------------
+-- Classes
+-------------------------------------------------------------------------------
+class User
+attributes
+   PublicKey : String
+   Name : String
+end
+
+class Official < User
+attributes
+   ID : Integer
+end
+
+class Admin < Official
+end
+
+class Participant < User
+attributes
+   ID : Integer
+end
+
+class Athlete < Participant
+attributes
+   Gender : String
+end
+
+class Coach < Participant
+end
+
+class Spectator < User
+end
+
+class Team
+attributes
+   Name : String
+   Score : Integer
+   Classification : String
+   Gender : String
+end
+
+class Event
+attributes
+   Name : String
+   StartTime : Integer
+   Current : Integer
+   InProgress : Boolean
+end
+
+class Result
+attributes
+   Value : Float
+   Attempt : Integer
+   Heat : Integer
+   Final : Boolean
+   Place : Integer
+end
+
+
+class Status
+attributes
+   Ready : Boolean
+   Conflict : String
+end
+
+class Meet
+attributes
+   Name : String
+   Location : String
+   Date : String
+end
+
+class Communicator
+attributes
+   Port : Integer
+end
+
+-------------------------------------------------------------------------------
+-- Associations
+-------------------------------------------------------------------------------
+association AllUsers between
+   Meet [1] role meetAt
+   User [1 .. *] role users
+end
+
+association AllTeams between
+   Meet [1] role meetCompeting
+   Team [1 .. *] role teams
+end
+
+association AllEvents between
+   Meet [1] role meetOccured
+   Event [1 .. *] role events
+
+association Communication between
+   Communicator [1] role connectedWith
+   User [1] role connectedTo
+end
+
+association TeamMembers between
+   Team [1] role onTeam
+   Athlete [1 .. *] role teamMemembers
+end
+
+association TeamStaff between
+   Team [1] role coachesTeam
+   Coach [1 .. *] role coaches
+end
+
+association EventResults between
+   Event [1] role eventOccured
+   Result [1 .. *] role results
+end
+
+association AthletesResult between
+   Result [1] role performed
+   Athlete [1] role performedBy
+end
+
+association AthleteStatus between
+   Athlete [1] role statuser
+   Status  [1 .. *] role statuses
+end
+
+association EventStatus between
+   Event [1] role statusedEvent
+   Status [1 .. *] role athleteStatuses
+end
+
+
+-------------------------------------------------------------------------------
+-- Constraints
+-------------------------------------------------------------------------------
+constraints
+
+-- Only one track meet
+context Meet
+   inv OnlyOneMeet:
+      Meet.allInstances->size = 1
+      
+-- Coaches only coach for one teamMemembers
+context t:Team
+   inv CoachesForOneTeam:
+      Team.allInstances->t.coaches->intersection(Team.allInstances->excluding(t).coaches)->size = 0
+   
+-- Athletes are only on one team
+context t:Team
+   inv AthletesOnOneTeam
+      t.teamMemembers->intersection(Team.allInstances->excluding(t).teamMemembers)->size = 0
+
+-- Athletes have one status per event
+context a:Athlete
+   inv OneStatusPerEvent
+      a.statuses->size = Event.allInstances->intersection(a.statuses.statusedEvent)->size
+   
+-- Correct Gender Athlete on Correct Gender Team
+context a:Athlete
+   inv GenderMatch
+      a.Gender = a.onTeam.Gender 
+   
