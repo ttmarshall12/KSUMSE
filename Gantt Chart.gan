@@ -180,14 +180,14 @@
             </task>
             <task id="14" name="Presentation 1" color="#8cb6ce" meeting="true" start="2016-08-26" duration="0" complete="100" expand="true"/>
         </task>
-        <task id="16" name="Elaboration Phase" meeting="false" start="2016-08-22" duration="44" complete="8" expand="true">
-            <task id="17" name="Revise Vision Document" color="#8cb6ce" meeting="false" start="2016-08-22" duration="5" complete="60" expand="true">
+        <task id="16" name="Elaboration Phase" meeting="false" start="2016-08-22" duration="44" complete="20" expand="true">
+            <task id="17" name="Revise Vision Document" color="#8cb6ce" meeting="false" start="2016-08-22" duration="5" complete="100" expand="true">
                 <depend id="25" type="2" difference="0" hardness="Rubber"/>
             </task>
-            <task id="19" name="Revise Project Plan" color="#8cb6ce" meeting="false" start="2016-08-22" duration="5" complete="60" expand="true">
+            <task id="19" name="Revise Project Plan" color="#8cb6ce" meeting="false" start="2016-08-22" duration="5" complete="100" expand="true">
                 <depend id="25" type="2" difference="0" hardness="Rubber"/>
             </task>
-            <task id="25" name="Create Formal Specification" color="#8cb6ce" meeting="false" start="2016-08-27" duration="5" complete="0" expand="true">
+            <task id="25" name="Create Formal Specification" color="#8cb6ce" meeting="false" start="2016-08-27" duration="5" complete="100" expand="true">
                 <depend id="28" type="2" difference="0" hardness="Rubber"/>
             </task>
             <task id="28" name="Create Architectural Design" meeting="false" start="2016-09-01" duration="5" complete="0" expand="true">
