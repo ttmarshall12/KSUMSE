@@ -1,9 +1,6 @@
 import socket
-#import rsa
 import os.path
 import Users
-import pickle
-import xml.etree.ElementTree as ET
 import sqlite3
 import random
 import threading
@@ -247,11 +244,6 @@ def acceptCommands():
       else:
          print("Invalid command....")
  
-# class testHandler(StreamRequestHandler):
-    # def handle(self):
-       # data = self.connection.recv(4096)
-        # self.wfile.write(data)
- 
  
 class ThreadedTCPRequestHandler(BaseRequestHandler):
    
@@ -260,15 +252,15 @@ class ThreadedTCPRequestHandler(BaseRequestHandler):
         
       Authenticator = DataManager.Authenticator(data)
         
-      # if Authenticator.Authenticated():
-         # print("Data authenticated...")
+      if Authenticator.Authenticated():
+         print("Data authenticated...")
          
-         # Decryptor = DataManager.Decryptor(data)
+         Decryptor = DataManager.Decryptor(data)
          
-         # dispatch = DataManager.Dispatcher(Decryptor.Decrypt("tempkey"))
+         dispatch = DataManager.Dispatcher(Decryptor.Decrypt("tempkey"))
          
-      # else:
-         # print("Data NOT authenticated...")
+      else:
+         print("Data NOT authenticated...")
         
         
       
@@ -302,44 +294,13 @@ class SSL_TCPServer(TCPServer):
         
 class SSL_ThreadingTCPServer(ThreadingMixIn, SSL_TCPServer): pass    
     
-    
-# class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-    # pass    
-    
-# def client(ip, port, message):
-    # sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # sock.connect((ip, port))
-    # try:
-        # sock.sendall(message)
-        # response = sock.recv(10240)
-        # print "Received: {}".format(response)
-    # finally:
-        # sock.close()
-        
-def client(ip, port, message):
-   s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-   ssl_sock = ssl.wrap_socket(s,
-                              ca_certs="TFMS.crt",
-                              cert_reqs=ssl.CERT_REQUIRED,
-                              ssl_version=ssl.PROTOCOL_TLSv1)
-   ssl_sock.connect((ip,port))
-   try:
-      ssl_sock.send(message)
-      response = ssl_sock.recv(4096)
-      print "Received: {}".format(response)
-   finally:
-      ssl_sock.close()
-      
- 
+
 def main():
    global Running
    global usersLoaded
    
    print('Track & Field Meet Server Starting....')
-   #print('Setting up DB...')
-   
-   #SetupDB()
-   
+
    while (Running == True):
       
       if not usersLoaded:
@@ -349,17 +310,14 @@ def main():
       else:
          acceptCommands()
          
-      #print("Run status is " + str(Running))
   
   
-# Port 0 means to select an arbitrary unused port
+
 HOST, PORT = "192.168.0.162", 50021
 
-#MySSL_ThreadingTCPServer(('127.0.0.1',5151),testHandler,"cert.pem","key.pem").serve_forever()
 server = SSL_ThreadingTCPServer((HOST,PORT),ThreadedTCPRequestHandler,"TFMS.crt","TFMS.key")
 
 
-#server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
 ip, port = server.server_address
 
 # Start a thread with the server -- that thread will then start one
@@ -372,11 +330,6 @@ print("Server loop running in thread:", server_thread.name)
  
  
 main()
-
-
-client(ip, port, "Hello World 1")
-client(ip, port, "Hello World 2")
-client(ip, port, "Hello World 3")
 
 server.shutdown()
 server.server_close()   
