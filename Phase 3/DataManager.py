@@ -16,7 +16,7 @@ class Authenticator:
       self.recv = data
       
    
-   def Autheticated(self):
+   def Authenticated(self):
       return True
       
       
@@ -33,3 +33,5 @@ class Dispatcher:
       
       if self.recv[0] == 'adduser':
         self.db.AddUser(self.recv[1], self.recv[2], self.recv[3])
+      else:
+         print("Command not recognized...")

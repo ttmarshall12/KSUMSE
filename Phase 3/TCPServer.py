@@ -8,22 +8,24 @@ from SocketServer import TCPServer, ThreadingMixIn, StreamRequestHandler, BaseRe
 import ssl
 import DataManager
 import Database
+import time
+import sys
+import pickle
 
 
 ######### Global Variables ##########
 Running = True
 usersLoaded = False
 userList = []
-userRoot = ET.Element("users")
 currentUser = ""
 commandCallback = {}
 userOptionCallback = {}
-
+server = ""
 
 ########## SQL DB #######################
 #dbConn = sqlite3.connect('tfms.db')
 #dbCur = dbConn.cursor()
-tfmsDB = Database.Database('tfms.db')
+#tfmsDB = Database.Database('tfms.db')
 
 #####################################
 def getRandomID():
@@ -37,14 +39,29 @@ def getRandomID():
    
    #dbCur.execute('CREATE TABLE IF NOT EXISTS users (type TEXT, name TEXT, id INT)')
    #dbCur.execute('CREATE TABLE IF NOT EXISTS events (name TEXT)')
+   
+def Get_Input(message):
+   print(message)
+   input = ""
+   char = ""
+   
+   while char != "\n":
+      print("Getting input...\n")
+      char = sys.stdin.read()
+      
+      if char != "":
+         input = input + char
+   
+   return input.rstrip()
 
 def Login():
    global currentUser
-   
+   tfmsDB = Database.Database('tfms.db')
+
    if currentUser == "":
       print('Logging in....')
-      name = raw_input("Enter name: ")
-      ID = raw_input("Enter ID: ")
+      name = Get_Input("Enter name: ")
+      ID = Get_Input("Enter ID: ")
       
       Match = tfmsDB.GetAdmin(name, ID)
       
@@ -92,9 +109,9 @@ def AddUser():
    addingUsers = True
    
    while(addingUsers):
-      name = raw_input("Enter User Name: ")
-      id = raw_input("Enter User ID or type ? to autogenerate: ")
-      type = raw_input("Enter User type\n"+
+      name = Get_Input("Enter User Name: ")
+      id = Get_Input("Enter User ID or type ? to autogenerate: ")
+      type = Get_Input("Enter User type\n"+
                        "ad - admin\n" +
                        "o  - oficial\n" +
                        "c  - coach\n" +
@@ -111,7 +128,7 @@ def AddUser():
       else:
          print("Failed to add user...")
          
-      addAnother = raw_input("Add another user (y/n)? ")
+      addAnother = Get_Input("Add another user (y/n)? ")
       
       if addAnother != 'y':
          addingUsers = False
@@ -122,8 +139,8 @@ def RemoveUser(name):
    user = dbCur.fetchone()
    
    if user != None:
-      #accept = raw_input('Sure you want to remove' + user[0] + user[1] + user[2] + ' (y/n)? ')
-      #accept = raw_input('Sure you want to remove' + str(user) + ' (y/n)? ')
+      #accept = Get_Input('Sure you want to remove' + user[0] + user[1] + user[2] + ' (y/n)? ')
+      #accept = Get_Input('Sure you want to remove' + str(user) + ' (y/n)? ')
       #if accept == 'y':
       dbCur.execute('DELETE FROM users WHERE type = ? AND name = ? AND id = ?', (user[0], user[1], user[2]))
       dbConn.commit()
@@ -137,14 +154,14 @@ def RemoveUser(name):
 def RemoveUserOption():
    PrintUsers()
       
-   name = raw_input('Enter name of user to be removed: ')
+   name = Get_Input('Enter name of user to be removed: ')
    Success = RemoveUser(name)
    
    
 def ModifyUser():
    PrintUsers()
    
-   name = raw_input('Enter name of user to be modified: ')
+   name = Get_Input('Enter name of user to be modified: ')
    
    dbCur.execute('SELECT * FROM users WHERE name = ?', (name,))
    
@@ -156,8 +173,8 @@ def ModifyUser():
       modifiedUser['name'] = user[1]
       modifiedUser['id']   = user[2]
       
-      field = raw_input('Enter the field you want to modify: ')
-      value = raw_input('Enter the new value: ')
+      field = Get_Input('Enter the field you want to modify: ')
+      value = Get_Input('Enter the new value: ')
       modifiedUser[field] = value
       
       dbCur.execute('UPDATE users SET type = ?, name = ?, id = ? WHERE type = ? AND name = ? AND id = ?', \
@@ -171,7 +188,7 @@ def ModifyUser():
    
 def UserOptions():
    print("Please select one of the following user options...")
-   command = raw_input("1  - Add User\n" +
+   command = Get_Input("1  - Add User\n" +
                        "2  - Remove User\n" +
                        "3  - Modify User\n")
    
@@ -201,7 +218,7 @@ def RegisterCallbacks():
    
 
 def LoadAdmin():
-   global tfmsDB
+   tfmsDB = Database.Database('tfms.db')
    allAdmin = tfmsDB.GetAllAdmin()
    print(allAdmin)
    if len(allAdmin) != 0:
@@ -210,8 +227,8 @@ def LoadAdmin():
       
    else:
       print("Must create an admin account....")
-      name = raw_input("Please enter admin name: ")
-      ID = raw_input("Please enter admin ID: ")
+      name = Get_Input("Please enter admin name: ")
+      ID = Get_Input("Please enter admin ID: ")
       
       print("Creating admin....")
       
@@ -223,7 +240,7 @@ def LoadAdmin():
 def acceptCommands():
    if currentUser == "":
       print("Please select one of the following commands...")
-      command = raw_input("1  - Login\n" +
+      command = Get_Input("1  - Login\n" +
                           "0  - Shutdown\n")
         
       if int(command) >= 0 and int(command) <= 1: 
@@ -233,7 +250,7 @@ def acceptCommands():
                         
    else:
       print("Please select one of the following commands...")
-      command = raw_input("1  - Logout\n" +
+      command = Get_Input("1  - Logout\n" +
                           "2  - User Options\n" +
                           "3  - Meet Setup\n"
                           "4  - Meet Mangement\n"
@@ -245,28 +262,37 @@ def acceptCommands():
          print("Invalid command....")
  
  
-class ThreadedTCPRequestHandler(BaseRequestHandler):
+class ThreadedTCPRequestHandler(StreamRequestHandler):
    
    def handle(self):
-      data = self.request.recv(10240)
+      
+      data = self.connection.recv(4096)
+      data = pickle.loads(data)
+      
+      # data = self.request.recv(10240)
         
       Authenticator = DataManager.Authenticator(data)
         
       if Authenticator.Authenticated():
          print("Data authenticated...")
          
-         Decryptor = DataManager.Decryptor(data)
+         #Decryptor = DataManager.Decryptor(data)
          
-         dispatch = DataManager.Dispatcher(Decryptor.Decrypt("tempkey"))
+         print(data[0])
+         
+         dispatch = DataManager.Dispatcher(data, Database.Database('tfms.db'))
+         dispatch.ExecuteCommand()
          
       else:
          print("Data NOT authenticated...")
         
         
-      
       cur_thread = threading.current_thread()
-      response = "{}: {}".format(cur_thread.name, data)
-      self.request.sendall(response)
+      print (cur_thread)
+      print("data received: " + ' '.join(data))
+      response = "{}: {}".format(cur_thread.name, ' '.join(data))
+      self.wfile.write(response)
+      #self.request.sendall(response)
 
 
 class SSL_TCPServer(TCPServer):
@@ -302,7 +328,6 @@ def main():
    print('Track & Field Meet Server Starting....')
 
    while (Running == True):
-      
       if not usersLoaded:
          usersLoaded = LoadAdmin()
          RegisterCallbacks()
@@ -310,9 +335,9 @@ def main():
       else:
          acceptCommands()
          
-  
-  
-
+   server.shutdown()
+   server.server_close()
+   
 HOST, PORT = "192.168.0.162", 50021
 
 server = SSL_ThreadingTCPServer((HOST,PORT),ThreadedTCPRequestHandler,"TFMS.crt","TFMS.key")
@@ -328,8 +353,9 @@ server_thread.daemon = True
 server_thread.start()
 print("Server loop running in thread:", server_thread.name)   
  
- 
-main()
+# io_thread = threading.Thread(target=main) 
+# io_thread.daemon = True
+# io_thread.start()
 
-server.shutdown()
-server.server_close()   
+#server.shutdown()
+#server.server_close()

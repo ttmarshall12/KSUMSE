@@ -7,9 +7,10 @@ Created on Tue Jul 12 20:30:51 2016
 
 import socket
 import ssl
-import rsa
+#import rsa
 import os.path
 #import rsa
+import pickle
 
 TCP_IP = "192.168.0.162"
 HOST = ''
@@ -35,10 +36,15 @@ def client(ip, port, message):
    finally:
       ssl_sock.close()
       
-
-client(ip, port, "Hello World 1")
-client(ip, port, "Hello World 2")
-client(ip, port, "Hello World 3")
+response = raw_input("Start? ")
+print("First message...")      
+client(ip, port, pickle.dumps(["hello", "world", "1"]))
+response = raw_input("Continue? ")
+print("Second message...")   
+client(ip, port, pickle.dumps(["hello", "world", "2"]))
+response = raw_input("Continue? ")
+print("Third message...")   
+client(ip, port, pickle.dumps(["adduser", "admin", "sarah", "54321"]))
 
 
 # def oldStuff:
