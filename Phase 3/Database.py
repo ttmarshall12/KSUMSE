@@ -9,7 +9,12 @@ class Database:
       self.dbCur = self.dbConn.cursor()
 
       self.dbCur.execute('CREATE TABLE IF NOT EXISTS users (type TEXT, name TEXT, id INT, team TEXT, gender TEXT)')
-      self.dbCur.execute('CREATE TABLE IF NOT EXISTS events (name TEXT)')
+      self.dbCur.execute('CREATE TABLE IF NOT EXISTS events (name TEXT, id INT, startTime TEXT)')
+      self.dbCur.execute('CREATE TABLE IF NOT EXISTS entry (eventID INT, athleteName TEXT, athleteID INT, status TEXT)')
+      self.dbCur.execute('CREATE TABLE IF NOT EXISTS results (event INT, athleteName TEXT, athleteID INT, athleteTeam TEXT, attempt INT, value REAL)')
+      
+   def __del__(self):
+      self.dbConn.close()
       
    def GetAdmin(self, name, id):
       
@@ -19,6 +24,30 @@ class Database:
       
       if Match != None:
          return Users.Admin(name, id)
+         
+      else:
+         return None
+         
+   def GetUser(self, name, id):
+      
+      self.dbCur.execute('SELECT * FROM users WHERE name = ? AND id = ?', (name, id))
+      
+      Match = self.dbCur.fetchone()
+      
+      if Match != None:
+         return Match
+         
+      else:
+         return None
+         
+   def GetUserType(self, name, id):
+      
+      self.dbCur.execute('SELECT type FROM users WHERE name = ? AND id = ?', (name, id))
+      
+      Match = self.dbCur.fetchone()
+      
+      if Match != None:
+         return Match
          
       else:
          return None
@@ -46,9 +75,9 @@ class Database:
       return users
       
       
-   def AddUser(self, userType, name, id):
+   def AddUser(self, userType, name, id, team, gender):
       
-      self.dbCur.execute('INSERT INTO users(type, name, id) VALUES (?, ?, ?)', (userType, name, id))
+      self.dbCur.execute('INSERT INTO users(type, name, id, team, gender) VALUES (?, ?, ?, ?, ?)', (userType, name, id, team, gender))
       self.dbConn.commit()
         
       return True
@@ -60,10 +89,23 @@ class Database:
       
       return True
       
-   def ModifyAmin(self, originalUser, modifiedUser):
+   def ModifyUser(self, inName, inID, outType, outName, outID, outTeam, outGender):
       
-      self.dbCur.execute('UPDATE users SET type = ?, name = ?, id = ? WHERE type = ? AND name = ? AND id = ?', \
-         ('admin', modifiedUser.name, modifiedUser.ID, 'admin', originalUser.name, originalUser.ID))
+      self.dbCur.execute('UPDATE users SET type = ?, name = ?, id = ?, team = ?, gender = ? WHERE name = ? AND id = ?', \
+         (outType, outName, outID, outTeam, outGender, inName, inID))
       
       self.dbConn.commit()
          
+   def AddResults(self, eventID, athleteName, athleteID, athleteTeam, attempt, value ):
+   
+      self.dbCur.execute('INSERT INTO results(event, athleteName, athleteID, athleteTeam, attempt, value) \
+         VALUES (?, ?, ?, ?, ?, ?)', (eventID, athleteName, athleteID, athleteTeam, attempt, value))
+         
+      self.dbConn.commit()
+      
+
+   def ModifyStatus(self, EID, AID, Status):
+      self.dbCur.execute('UPDATE entry SET status = ? WHERE eventID = ? AND athleteID = ?', \
+         (Status, EID, AID))
+      
+      self.dbConn.commit()

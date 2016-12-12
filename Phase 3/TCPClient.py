@@ -35,81 +35,71 @@ def client(ip, port, message):
       print "Received: {}".format(response)
    finally:
       ssl_sock.close()
+    
+    
+while True:
+
+   option = raw_input("1 - Add User\n" \
+                      "2 - Modify User\n"\
+                      "3 - Add Results\n"\
+                      "4 - Update Status\n")
+                      
+   senderName = raw_input("Enter your name: ")
+   senderID = raw_input("Enter your ID: ")
+                      
+   if option == "1":
+   
+      newUserType = raw_input("Enter users type: ")
+      newUserName = raw_input("Enter users name: ")
+      newUserID = raw_input("Enter users id: ")
+      newUserTeam = raw_input("Enter users team: ")
+      newUserGender = raw_input("Enter users gender: ")
+   
+      client(ip, port, pickle.dumps(["adduser", senderName, senderID, newUserType, newUserName, newUserID, newUserTeam, newUserGender]))
+   
+   elif option == "2":
+   
+      oldUserName = raw_input("Enter name of user to be modified: ")
+      oldUserID = raw_input("Enter id of user to be modified: ")
+      newUserType = raw_input("Enter users type: ")
+      newUserName = raw_input("Enter users name: ")
+      newUserID = raw_input("Enter users id: ")
+      newUserTeam = raw_input("Enter users team: ")
+      newUserGender = raw_input("Enter users gender: ")
       
-response = raw_input("Start? ")
-print("First message...")      
-client(ip, port, pickle.dumps(["hello", "world", "1"]))
-response = raw_input("Continue? ")
-print("Second message...")   
-client(ip, port, pickle.dumps(["hello", "world", "2"]))
-response = raw_input("Continue? ")
-print("Third message...")   
-client(ip, port, pickle.dumps(["adduser", "admin", "sarah", "54321"]))
-
-
-# def oldStuff:
-   # print('Loading server public key...')
-   # f = open('serverpublic.key', 'r')
-   # keyfile = f.read()
-   # serverpubkey = rsa.PublicKey.load_pkcs1(keyfile, 'PEM')
-   # f.close()
-
-   # if not os.path.isfile('public.key') or not os.path.isfile('private.key'):
+      client(ip, port, pickle.dumps(["modifyuser", senderName, senderID, oldUserName, oldUserID,  newUserType, newUserName, newUserID, newUserTeam, newUserGender]))
+   
+   
+   elif option == "3":
+   
+      eventID = raw_input("Enter event ID: ")
+      athleteName = raw_input("Enter athlete name: ")
+      athleteID = raw_input("Enter athlete ID: ")
+      athleteTeam = raw_input("Enter athlete team: ")
+      attempt = raw_input("Enter attempt number (zero if n/a): ")
+      value = raw_input("Enter result value: ")
+   
+      client(ip, port, pickle.dumps(["addresults", senderName, senderID, eventID, athleteName, athleteID, athleteTeam, attempt, value]))
+   
+   elif option == "4":
+   
+      eventID = raw_input("Enter event ID: ")
+      athleteName = raw_input("Enter athlete name: ")
+      athleteID = raw_input("Enter athlete ID: ")
+      status = raw_input("Enter status: ")
       
-      # print("Gnerating RSA keys...")
-      # (pubkey, privkey) = rsa.newkeys(512)
-      
-      # f = open('public.key', 'wb')
-      # f.write((pubkey.save_pkcs1('PEM')))
-      # f.close()
-      
-      # f = open('private.key', 'wb')
-      # f.write((privkey.save_pkcs1('PEM')))
-      # f.close()
-      
-   # else:
-      
-      # print("loading public key...")
-      # f = open('public.key', 'r')
-      # keyfile = f.read()
-      # pubkey = rsa.PublicKey.load_pkcs1(keyfile, 'PEM')
-      # f.close()
-      # #f.open('public.key','r')
-      # #pubkey = f.read()
-      # #f.close()
-      
-      # print("loading private key...")
-      # f = open('private.key', 'r')
-      # keyfile = f.read()
-      # privkey = rsa.PrivateKey.load_pkcs1(keyfile,'PEM')
-      # f.close()
-      # #f.open('private.key', 'r')
-      # #privkey = f.read()
-      # #f.close()
+   
+      client(ip, port, pickle.dumps(["updatestatus", senderName, senderID, eventID, athleteName, athleteID, status]))
+   
+# response = raw_input("Start? ")
+# print("First message...")      
+# client(ip, port, pickle.dumps(["hello", "world", "1"]))
+# response = raw_input("Continue? ")
+# print("Second message...")   
+# client(ip, port, pickle.dumps(["updatestatus", "tracy", "12345", "200", "sarah", "98989", "at event"]))
+# #client(ip, port, pickle.dumps(["adduser", "tracy", "12345", "coach", "tina", "98000", "wichita", "female"]))
+# #client(ip, port, pickle.dumps(["addresults", "jimmie", "55555", "345", "steve", "77777", "hutchinson", "3", "9.04"]))
+# response = raw_input("Continue? ")
 
 
-
-   # print('Creating socket...')
-   # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-   # print('Socket connecting...')
-   # s.connect((TCP_IP, TCP_PORT))
-
-
-
-   # cryptmessage = rsa.encrypt(MESSAGE.encode(),serverpubkey)
-
-   # print('Socket sent: ' + str(cryptmessage))
-   # s.send(cryptmessage)
-
-
-   # data = s.recv(BUFFER_SIZE)
-
-   # decryptedData = rsa.decrypt(data,privkey)
-
-   # print('Received Enrypted: ' + str(data))
-   # print('Received Decrypted: ' + str(decryptedData))
-   # s.close()
-
-   # #print("Sent data:", data)
    
